@@ -103,14 +103,17 @@ npm run fullstack  # Runs both frontend & backend
 
 ### 🏠 Hero Section
 ![Hero Section](./screenshots/hero-desktop.png)
+
 *Interactive video backgrounds with smooth animations*
 
 ### 📖 Story Section  
 ![Story Section](./screenshots/story-bento.png)
+
 *3D hover effects on story cards*
 
 ### 📊 Gaming Statistics
 ![Gaming Stats](./screenshots/gaming-stats.png)
+
 *Real-time statistics with animated counters*
 
 ### 📱 Mobile Experience
