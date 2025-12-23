@@ -10,7 +10,7 @@
 
 **A stunning, immersive gaming metaverse landing page with advanced 3D animations**
 
-[🌐 Live Demo](https://interactive-metaverse-website.vercel.app) • [📧 Contact](mailto:your@email.com) • [🐛 Report Bug](https://github.com/AvishkaIndu/interactive-metaverse-website/issues)
+[🌐 Live Demo](https://interactive-metaverse-website.vercel.app/) • [📧 Contact](mailto:your@email.com) • [🐛 Report Bug](https://github.com/AvishkaIndu/interactive-metaverse-website/issues)
 
 </div>
 
