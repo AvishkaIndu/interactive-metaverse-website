@@ -1,0 +1,28 @@
+import React from 'react'
+import Hero from './components/Hero'
+import About from './components/About'
+import Navbar from './components/Navbar'
+import Features from './components/Features'
+import Games from './components/Games'
+import Story from './components/Story'
+import GameStats from './components/GameStats'
+import Contact from './components/Contact'
+import Footer from './components/Footer'
+
+const App = () => {
+  return (
+    <main className='relative min-h-screen w-screen overflow-x-hidden'>
+      <Navbar />
+      <Hero />
+      <About />
+      <Features />
+      <Games />
+      <Story />
+      <GameStats />
+      <Contact />
+      <Footer />
+    </main>
+  )
+}
+
+export default App
