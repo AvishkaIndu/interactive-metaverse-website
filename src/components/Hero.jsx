@@ -13,37 +13,50 @@ const Hero = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadedVideos, setLoadedVideos] = useState(0);
   const [videoError, setVideoError] = useState(false);
+  const [videosReady, setVideosReady] = useState(new Set());
 
   const totalVideos = 3; // Updated to match available videos (hero-1, hero-2, hero-3)
   const nextVideoRef = useRef(null);
   const mainVideoRef = useRef(null);
 
-  const handleVideoLoad = () => {
+  const handleVideoLoad = (videoIndex) => {
     setLoadedVideos((prev) => prev + 1);
+    setVideosReady((prev) => new Set([...prev, videoIndex]));
   };
 
   const upcomingVideoIndex = (currentIndex % totalVideos) + 1;
 
   const handleMiniVdClick = () => {
-    setHashClicked(true);
-    setCurrentIndex(upcomingVideoIndex);
+    // Only switch if the next video is ready to avoid lag
+    if (videosReady.has(upcomingVideoIndex)) {
+      setHashClicked(true);
+      setCurrentIndex(upcomingVideoIndex);
+    }
   };
 
   useEffect(() => {
-    if (loadedVideos >= totalVideos - 2) { // More lenient loading check
+    // More conservative loading check - only need main video loaded
+    if (loadedVideos >= 1) {
       setIsLoading(false);
     }
   }, [loadedVideos]);
 
-  // Effect to handle main video source updates
+  // Optimized effect to handle main video source updates
   useEffect(() => {
-    if (mainVideoRef.current) {
+    if (mainVideoRef.current && videosReady.has(currentIndex)) {
       const currentVideo = mainVideoRef.current;
-      currentVideo.src = getVideoSrc(currentIndex);
-      currentVideo.load();
-      currentVideo.play().catch(console.log);
+      const newSrc = getVideoSrc(currentIndex);
+      
+      if (currentVideo.src !== newSrc) {
+        currentVideo.src = newSrc;
+        currentVideo.load();
+        // Add a small delay to ensure video is ready
+        setTimeout(() => {
+          currentVideo.play().catch(console.log);
+        }, 100);
+      }
     }
-  }, [currentIndex]);
+  }, [currentIndex, videosReady]);
 
   useGSAP(() => {
     if (hashClicked){
@@ -58,12 +71,22 @@ const Hero = () => {
         ease: 'power1.inOut', 
         onStart: () => {
           if (nextVideoRef.current) {
-            nextVideoRef.current.play().catch(console.log);
+            // Preload the next video before playing
+            nextVideoRef.current.load();
+            setTimeout(() => {
+              nextVideoRef.current.play().catch(console.log);
+            }, 200);
           }
         },
         onComplete: () => {
-          // Reset for next transition
+          // Reset for next transition and preload next video
           setHashClicked(false);
+          // Preload the next upcoming video
+          const preloadIndex = (currentIndex % totalVideos) + 1;
+          const preloadSrc = getVideoSrc(preloadIndex);
+          const preloadVideo = document.createElement('video');
+          preloadVideo.src = preloadSrc;
+          preloadVideo.load();
         }
       });
 
@@ -129,12 +152,11 @@ const Hero = () => {
               src={getVideoSrc(upcomingVideoIndex)}
               loop
               muted
-              autoPlay
               playsInline
-              preload="metadata"
+              preload="none"
               id='current-video'
               className='size-64 origin-center scale-150 object-cover object-center'
-              onLoadedData={handleVideoLoad}
+              onLoadedData={() => handleVideoLoad(upcomingVideoIndex)}
               onError={(e) => {
                 console.log('Mini video load error:', e.target.src);
                 setVideoError(true);
@@ -162,16 +184,21 @@ const Hero = () => {
         src={getVideoSrc(upcomingVideoIndex)}
         loop
         muted
-        autoPlay
         playsInline
-        preload="metadata"
+        preload="none"
         id='next-video'
         ref={nextVideoRef}
         className='absolute-center invisible absolute z-20 size-64 object-cover object-center'
-        onLoadedData={handleVideoLoad}
+        onLoadedData={() => handleVideoLoad(upcomingVideoIndex)}
         onError={(e) => {
           console.log('Next video load error:', e.target.src);
           setVideoError(true);
+        }}
+        onCanPlay={() => {
+          // Only auto-play if this is the active transition video
+          if (hashClicked && nextVideoRef.current) {
+            nextVideoRef.current.play().catch(console.log);
+          }
         }}
         />
 
@@ -183,10 +210,11 @@ const Hero = () => {
             muted
             playsInline
             preload="auto"
+            poster="/img/about.jpg"
             className='absolute left-0 top-0 size-full object-cover object-center'
-            onLoadedData={handleVideoLoad}
+            onLoadedData={() => handleVideoLoad(currentIndex)}
             onError={(e) => {
-              console.log('Video load error:', e.target.src);
+              console.log('Main video load error:', e.target.src);
               setVideoError(true);
               // Fallback to first video if current fails
               if (currentIndex !== 1) {
@@ -194,9 +222,23 @@ const Hero = () => {
               }
             }}
             onCanPlay={() => {
-              // Ensure video starts playing when it can
+              // Ensure video starts playing when it can with a small delay
               if (mainVideoRef.current) {
-                mainVideoRef.current.play().catch(console.log);
+                setTimeout(() => {
+                  mainVideoRef.current.play().catch(console.log);
+                }, 100);
+              }
+            }}
+            onWaiting={() => {
+              console.log('Video is waiting for data...');
+            }}
+            onStalled={() => {
+              console.log('Video download has stalled');
+              // Try to reload if video stalls
+              if (mainVideoRef.current) {
+                setTimeout(() => {
+                  mainVideoRef.current.load();
+                }, 1000);
               }
             }}
             />
