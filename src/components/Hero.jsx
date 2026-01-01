@@ -35,11 +35,37 @@ const Hero = () => {
     }
   }, [loadedVideos]);
 
+  // Effect to handle main video source updates
+  useEffect(() => {
+    if (mainVideoRef.current) {
+      const currentVideo = mainVideoRef.current;
+      currentVideo.src = getVideoSrc(currentIndex);
+      currentVideo.load();
+      currentVideo.play().catch(console.log);
+    }
+  }, [currentIndex]);
+
   useGSAP(() => {
     if (hashClicked){
       gsap.set('#next-video', {visibility: 'visible'});
 
-      gsap.to('#next-video', {transformOrigin: 'center center', scale: 1, duration: 1, width: '100%', height: '100%', ease: 'power1.inOut', onStart: () => nextVideoRef.current.play()});
+      gsap.to('#next-video', {
+        transformOrigin: 'center center', 
+        scale: 1, 
+        duration: 1, 
+        width: '100%', 
+        height: '100%', 
+        ease: 'power1.inOut', 
+        onStart: () => {
+          if (nextVideoRef.current) {
+            nextVideoRef.current.play().catch(console.log);
+          }
+        },
+        onComplete: () => {
+          // Reset for next transition
+          setHashClicked(false);
+        }
+      });
 
       gsap.from('#current-video', {
         transformOrigin: 'center center', 
@@ -47,8 +73,7 @@ const Hero = () => {
         duration: 1.5,
         ease: 'power1.inOut',
       })
-
-      }
+    }
   }, {dependencies: [currentIndex], revertOnUpdate: true});
 
   useGSAP(() => {
@@ -101,7 +126,6 @@ const Hero = () => {
         <div className='mask-clip-path absolute-center absolute z-50 size-64 cursor-pointer overflow-hidden rounded-lg'>
           <div onClick={handleMiniVdClick} className='origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100'>
             <video 
-              ref={nextVideoRef}
               src={getVideoSrc(upcomingVideoIndex)}
               loop
               muted
@@ -115,10 +139,8 @@ const Hero = () => {
                 console.log('Mini video load error:', e.target.src);
                 setVideoError(true);
               }}
-              onCanPlay={() => {
-                if (nextVideoRef.current) {
-                  nextVideoRef.current.play().catch(console.log);
-                }
+              onCanPlay={(e) => {
+                e.target.play().catch(console.log);
               }}
             />
           </div>
@@ -137,13 +159,14 @@ const Hero = () => {
         </div>
 
         <video 
-        src={getVideoSrc(currentIndex)}
+        src={getVideoSrc(upcomingVideoIndex)}
         loop
         muted
         autoPlay
         playsInline
         preload="metadata"
         id='next-video'
+        ref={nextVideoRef}
         className='absolute-center invisible absolute z-20 size-64 object-cover object-center'
         onLoadedData={handleVideoLoad}
         onError={(e) => {
