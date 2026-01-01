@@ -15,7 +15,7 @@ const Hero = () => {
   const [videoError, setVideoError] = useState(false);
   const [videosReady, setVideosReady] = useState(new Set());
 
-  const totalVideos = 3; // Updated to match available videos (hero-1, hero-2, hero-3)
+  const totalVideos = 4; // Updated to match available videos (hero-1, hero-2, hero-3, hero-4)
   const nextVideoRef = useRef(null);
   const mainVideoRef = useRef(null);
 
