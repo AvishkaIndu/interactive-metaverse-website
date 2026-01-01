@@ -14,7 +14,7 @@ const Hero = () => {
   const [loadedVideos, setLoadedVideos] = useState(0);
   const [videoError, setVideoError] = useState(false);
 
-  const totalVideos = 4;
+  const totalVideos = 3; // Changed from 4 to 3 since hero-4.mp4 was removed
   const nextVideoRef = useRef(null);
   const mainVideoRef = useRef(null);
 
@@ -30,7 +30,7 @@ const Hero = () => {
   };
 
   useEffect(() => {
-    if (loadedVideos >= totalVideos - 2) { // More lenient loading check
+    if (loadedVideos >= totalVideos - 1) { // Adjusted for 3 videos instead of 4
       setIsLoading(false);
     }
   }, [loadedVideos]);
