@@ -14,7 +14,7 @@ const Hero = () => {
   const [loadedVideos, setLoadedVideos] = useState(0);
   const [videoError, setVideoError] = useState(false);
 
-  const totalVideos = 4;
+  const totalVideos = 3; // Updated to match available videos (hero-1, hero-2, hero-3)
   const nextVideoRef = useRef(null);
   const mainVideoRef = useRef(null);
 
@@ -70,7 +70,11 @@ const Hero = () => {
     });
   });
 
-  const getVideoSrc = (index) => `videos/hero-${index}.mp4`;
+  const getVideoSrc = (index) => {
+    // Ensure we only use available video indices (1, 2, 3)
+    const validIndex = ((index - 1) % totalVideos) + 1;
+    return `/videos/hero-${validIndex}.mp4`;
+  };
 
 
   return (
@@ -88,6 +92,11 @@ const Hero = () => {
 
 
       <div id='hero' className='relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-black'>
+        {videoError && (
+          <div className='absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900 z-5'>
+            <div className='absolute inset-0 bg-black/30'></div>
+          </div>
+        )}
         <div id='video-frame' className='relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-black'>
         <div className='mask-clip-path absolute-center absolute z-50 size-64 cursor-pointer overflow-hidden rounded-lg'>
           <div onClick={handleMiniVdClick} className='origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100'>
@@ -102,7 +111,15 @@ const Hero = () => {
               id='current-video'
               className='size-64 origin-center scale-150 object-cover object-center'
               onLoadedData={handleVideoLoad}
-              onError={() => setVideoError(true)}
+              onError={(e) => {
+                console.log('Mini video load error:', e.target.src);
+                setVideoError(true);
+              }}
+              onCanPlay={() => {
+                if (nextVideoRef.current) {
+                  nextVideoRef.current.play().catch(console.log);
+                }
+              }}
             />
           </div>
         </div>
@@ -129,7 +146,10 @@ const Hero = () => {
         id='next-video'
         className='absolute-center invisible absolute z-20 size-64 object-cover object-center'
         onLoadedData={handleVideoLoad}
-        onError={() => setVideoError(true)}
+        onError={(e) => {
+          console.log('Next video load error:', e.target.src);
+          setVideoError(true);
+        }}
         />
 
         <video 
@@ -144,9 +164,16 @@ const Hero = () => {
             onLoadedData={handleVideoLoad}
             onError={(e) => {
               console.log('Video load error:', e.target.src);
+              setVideoError(true);
               // Fallback to first video if current fails
               if (currentIndex !== 1) {
                 setCurrentIndex(1);
+              }
+            }}
+            onCanPlay={() => {
+              // Ensure video starts playing when it can
+              if (mainVideoRef.current) {
+                mainVideoRef.current.play().catch(console.log);
               }
             }}
             />
